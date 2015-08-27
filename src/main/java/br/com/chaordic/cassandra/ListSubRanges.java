@@ -30,6 +30,7 @@ public class ListSubRanges {
     private static final String PARTITIONS_OPT = "num-partitions";
     private static final String CASSANDRA_LISTEN_ADDRESS_OPT = "listen-address";
     private static final String OMIT_HEADER_OPT = "omit-header";
+    private static final String JSON_OUTPUT_OPT = "json-output";
     private static final Options options;
     static {
         options = new Options();
@@ -44,7 +45,9 @@ public class ListSubRanges {
         options.addOption("n", PARTITIONS_OPT, true,
                 "Number of partitions per subsplit. (default 32K)");
         options.addOption("o", OMIT_HEADER_OPT, false,
-                "Number of partitions per subsplit.");
+                "Omit the header from the standard output.");
+        options.addOption("j", JSON_OUTPUT_OPT, false,
+                "Output token ranges as a JSON array.");
     }
 
     static Cassandra.Client client;
@@ -58,6 +61,7 @@ public class ListSubRanges {
 
     static boolean firstRangeOnly;
     static boolean omitHeader;
+    static boolean jsonOutput;
 
     public static void main(String[] args) throws Exception {
         if (args.length < 3){
@@ -68,7 +72,7 @@ public class ListSubRanges {
         parseOpts(args);
         initClient();
 
-        if (!omitHeader) {
+        if (!omitHeader && !jsonOutput) {
             printHeader();
         }
 
@@ -87,11 +91,24 @@ public class ListSubRanges {
     private static void retrieveAndPrintSubsplits(String columnFamily, int keysPerSplit, String startToken, String endToken, Cassandra.Client client)
             throws InvalidRequestException, TException {
         List<CfSplit> cfSplits = client.describe_splits_ex(columnFamily, startToken, endToken, keysPerSplit);
+        if (jsonOutput)
+          System.out.println("[");
+        boolean first = true;
         for (CfSplit cfSplit : cfSplits) {
-            String st = String.format("%1$-39s", cfSplit.start_token);
-            String et = String.format("%1$-39s", cfSplit.end_token);
-            System.out.printf("%s %s %d\n", st, et, cfSplit.row_count);
+            if (jsonOutput) {
+                if (!first)
+                    System.out.println(",");
+                else
+                    first = false;
+                System.out.printf("[%s,%s]", cfSplit.start_token, cfSplit.end_token);
+            } else {
+                String st = String.format("%1$-39s", cfSplit.start_token);
+                String et = String.format("%1$-39s", cfSplit.end_token);
+                System.out.printf("%s %s %d\n", st, et, cfSplit.row_count);
+            }
         }
+        if (jsonOutput)
+          System.out.println("\n]");
     }
 
     private static void printHeader() {
@@ -135,6 +152,7 @@ public class ListSubRanges {
         endToken = cmdLine.getOptionValue(END_TOKEN_OPT);
         firstRangeOnly = cmdLine.hasOption(PARTITIONER_RANGE_OPT);
         omitHeader = cmdLine.hasOption(OMIT_HEADER_OPT);
+        jsonOutput = cmdLine.hasOption(JSON_OUTPUT_OPT);
     }
 
     private static void printHelpAndExit(Options options) {
