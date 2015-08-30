@@ -55,7 +55,6 @@ public class ListSubRanges {
                 "Omit the header from the standard output.");
         options.addOption("j", JSON_OUTPUT_OPT, false,
                 "Output token ranges as a JSON array.");
-                "Number of partitions per subsplit.");
         options.addOption("u", USERNAME, false,
                 "Username to authenticate with.");
         options.addOption("p", PASSWORD, false,
