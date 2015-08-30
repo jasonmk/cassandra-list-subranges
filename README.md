@@ -17,7 +17,7 @@ Before using the tool, compile it using the following command:
 
 ## Supported Cassandra versions
 
-The project is configured by default to use Cassandra 1.2.16.
+The project is configured by default to use Cassandra 2.1.8
 
 In order to compile for Cassandra 2.0.X, modify the `<version>` attribute on the "org.apache.cassandra" pom.xml dependency.
 
@@ -25,19 +25,22 @@ In order to compile for Cassandra 2.0.X, modify the `<version>` attribute on the
 
 ```
 usage: java -jar list-subranges.jar <nodeIpAddress> <keySpace> <columnFamily>
-
 Lists CF subranges for a particular node or token range.
-
 The output of this command can be used as input for subrange repair.
  -et,--end-token <arg>       Calculate subranges of the range with this
                              end token.
+ -j,--json-output            Output token ranges as a JSON array.
+ -l,--listen-address <arg>   Node listen address (if different from
+                             broadcast address). (default: nodeIpAddress)
  -n,--num-partitions <arg>   Number of partitions per subsplit. (default
                              32K)
- -o,--omit-header            Number of partitions per subsplit.
+ -o,--omit-header            Omit the header from the standard output.
+ -p,--password               Password to authenticate with.
  -pr,--partitioner-range     Only consider the first range returned by the
                              partitioner.
  -st,--start-token <arg>     Calculate subranges of the range with this
                              start token.
+ -u,--username               Username to authenticate with.
 ```
 
 ## Example
